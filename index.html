@@ -130,7 +130,7 @@
 
 <script type="text/javascript">
     // ลิงก์โมเดลจากระบบ Teachable Machine ของคุณ
-    const URL = "https://teachablemachine.withgoogle.com/models/jkT2DnYZd/";[cite: 3]
+    const URL = "https://teachablemachine.withgoogle.com/models/jkT2DnYZd/";
 
     let model, webcam, labelContainer, maxPredictions;
     let lastPredictTime = 0;
@@ -140,31 +140,31 @@
         // ซ่อนปุ่มกดเพื่อป้องกันการกดซ้ำซ้อน
         document.querySelector('.btn-start').style.display = 'none';
 
-        const modelURL = URL + "model.json";[cite: 3]
-        const metadataURL = URL + "metadata.json";[cite: 3]
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
 
         // โหลดตัวโมเดล AI ออกมาใช้งาน
-        model = await tmImage.load(modelURL, metadataURL);[cite: 3]
-        maxPredictions = model.getTotalClasses();[cite: 3]
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
 
         // ตั้งค่าตัวกล้องแคม
         const flip = true; 
-        webcam = new tmImage.Webcam(250, 250, flip);[cite: 3]
+        webcam = new tmImage.Webcam(250, 250, flip);
         await webcam.setup(); 
-        await webcam.play();[cite: 3]
+        await webcam.play();
         
         // รันภาพเคลื่อนไหวของกล้องสดให้ขยับแบบเรียลไทม์
-        window.requestAnimationFrame(loop);[cite: 3]
+        window.requestAnimationFrame(loop);
 
         // ใส่ Element หน้าจอกล้องลงไปใน HTML
-        document.getElementById("webcam-container").appendChild(webcam.canvas);[cite: 3]
-        labelContainer = document.getElementById("label-container");[cite: 3]
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
         
         // สร้างกรอบข้อความเพื่อรอแสดงผลเปอร์เซ็นต์คำทำนาย
-        for (let i = 0; i < maxPredictions; i++) {[cite: 3]
+        for (let i = 0; i < maxPredictions; i++) {
             let div = document.createElement("div");
             div.className = "label-box";
-            labelContainer.appendChild(div);[cite: 3]
+            labelContainer.appendChild(div);
         }
 
         // ให้วิเคราะห์ข้อมูลคำทำนายทันทีในครั้งแรกที่เปิด
@@ -174,24 +174,24 @@
 
     // ฟังก์ชันลูปดึงภาพสดเข้ามาที่ตัวแคนวาสเพื่อให้ภาพกล้องเคลื่อนไหวได้อย่างราบรื่น
     async function loop() {
-        webcam.update();[cite: 3]
+        webcam.update();
         
         let currentTime = Date.now();
-        // หน่วงเวลาให้ตัวฟังก์ชันทำนายผล (predict) ทำงานเมื่อครบทุกๆ 3 วินาที (3000 มิลลิวินาที) เท่านั้น
+        // หน่วงเวลาให้ตัวฟังก์ชันทำนายผลทำงานเมื่อครบทุก ๆ 3 วินาที (3000 มิลลิวินาที) เท่านั้น
         if (currentTime - lastPredictTime >= 3000) {
             await predict();
             lastPredictTime = currentTime;
         }
         
-        window.requestAnimationFrame(loop);[cite: 3]
+        window.requestAnimationFrame(loop);
     }
 
     // ฟังก์ชันส่งเฟรมรูปภาพไปประมวลผลคำทำนายและแสดงผลลัพธ์ลง UI
     async function predict() {
         if (!model || !webcam) return;
 
-        const prediction = await model.predict(webcam.canvas);[cite: 3]
-        for (let i = 0; i < maxPredictions; i++) {[cite: 3]
+        const prediction = await model.predict(webcam.canvas);
+        for (let i = 0; i < maxPredictions; i++) {
             const className = prediction[i].className;
             const percent = (prediction[i].probability * 100).toFixed(0) + "%";
             
