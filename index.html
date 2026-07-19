@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teachable Machine - Every 3 Seconds</title>
-    <!-- นำเข้าฟอนต์ Google Fonts เพื่อความโมเดิร์นและสวยงาม -->
+    <title>Teachable Machine Image Model</title>
+    <!-- นำเข้าฟอนต์ Google Fonts เพื่อความสวยงาม -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
@@ -124,7 +124,7 @@
     <div id="label-container"></div>
 </div>
 
-<!-- โหลด TensorFlow และ Teachable Machine Library -->
+<!-- โหลด TensorFlow และ Teachable Machine Library จาก CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
@@ -133,7 +133,7 @@
     const URL = "https://teachablemachine.withgoogle.com/models/jkT2DnYZd/";
 
     let model, webcam, labelContainer, maxPredictions;
-    let predictInterval;
+    let lastPredictTime = 0; // ตัวแปรเก็บเวลาล่าสุดที่บันทึกการทำนายผล
 
     // ฟังก์ชันเปิดใช้งานโมเดลและเซ็ตระบบกล้อง
     async function init() {
@@ -150,13 +150,13 @@
         // ตั้งค่าตัวกล้องแคม (ขนาด 250x250 พิกเซล พร้อมเปิดการกลับซ้ายขวาแบบกระจกเงา)
         const flip = true; 
         webcam = new tmImage.Webcam(250, 250, flip);
-        await webcam.setup(); // ร้องขอการเปิดใช้สิทธิ์ตัวกล้อง
+        await webcam.setup(); // ร้องขอการเปิดใช้สิทธิ์ตัวกล้องจากเบราว์เซอร์
         await webcam.play();
         
-        // รันภาพเคลื่อนไหวของกล้องสดให้ขยับแบบเรียลไทม์ (ภาพไม่กระตุก)
+        // เริ่มต้นลูปเพื่อให้ภาพกล้องเคลื่อนไหวอย่างราบรื่น
         window.requestAnimationFrame(loop);
 
-        // ใส่ Element หน้าจอกล้องลงไปใน HTML
+        // ใส่หน้าจอกล้องลงไปใน HTML
         document.getElementById("webcam-container").appendChild(webcam.canvas);
         labelContainer = document.getElementById("label-container");
         
@@ -167,31 +167,37 @@
             labelContainer.appendChild(div);
         }
 
-        // ให้วิเคราะห์ข้อมูลคำทำนายทันทีในครั้งแรกที่เปิด
+        // กำหนดเวลาเริ่มต้นสำหรับการทำนายผล
+        lastPredictTime = Date.now();
         await predict();
-
-        // ตั้งเวลาให้ระบบทำการดึงภาพทำนายผล (predict) ทุกๆ 3 วินาที (3000 มิลลิวินาที)
-        predictInterval = setInterval(predict, 3000);
     }
 
-    // ฟังก์ชันลูปดึงภาพสดเข้ามาที่ตัวแคนวาสเพื่อให้ภาพกล้องเคลื่อนไหวได้อย่างราบรื่น
+    // ฟังก์ชันควบคุมการทำงานของกล้องสดและจัดการเรื่องเวลา
     async function loop() {
-        webcam.update();
+        webcam.update(); // ดึงเฟรมปัจจุบันจากกล้องมาแสดงผลให้ภาพเคลื่อนไหวลื่นไหลเป็นปกติ
+        
+        let currentTime = Date.now();
+        // ตรวจสอบว่าเวลาผ่านไปแล้วครบ 3 วินาที (3000 มิลลิวินาที) หรือยัง
+        if (currentTime - lastPredictTime >= 3000) {
+            await predict(); // สั่งให้ AI ประมวลผลภาพ
+            lastPredictTime = currentTime; // บันทึกเวลาที่ทำนายผลล่าสุดไว้
+        }
+        
         window.requestAnimationFrame(loop);
     }
 
-    // ฟังก์ชันส่งเฟรมรูปภาพไปประมวลผลคำทำนายและแสดงผลลัพธ์ลง UI
+    // ฟังก์ชันส่งรูปภาพจากกล้องไปประมวลผลคำทำนายและแสดงผลลัพธ์ลง UI
     async function predict() {
         if (!model || !webcam) return;
 
-        // ดึงภาพจากเฟรมกล้อง ณ เสี้ยววินาทีนั้นไปตรวจจับผล
+        // ดึงภาพจากเฟรมกล้องไปตรวจจับผลลัพธ์ผ่านโมเดล
         const prediction = await model.predict(webcam.canvas);
         for (let i = 0; i < maxPredictions; i++) {
             const className = prediction[i].className;
-            // แปลงค่าจุดทศนิยมของโอกาสความน่าจะเป็นให้เป็นค่าเปอร์เซ็นต์ (เช่น 0.94 -> 94%)
+            // แปลงค่าจุดทศนิยมความน่าจะเป็นให้เป็นเปอร์เซ็นต์ (เช่น 0.95 -> 95%)
             const percent = (prediction[i].probability * 100).toFixed(0) + "%";
             
-            // นำผลที่แปลงแล้วอัปเดตลงไปในกล่องแสดงคำทำนายที่สร้างเตรียมไว้
+            // อัปเดตข้อมูลลงไปในกล่องแสดงผลลัพธ์บนหน้าจอ
             labelContainer.childNodes[i].innerHTML = `
                 <span class="class-text">${className}</span>
                 <span class="probability-text">${percent}</span>
