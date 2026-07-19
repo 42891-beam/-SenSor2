@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teachable Machine Image Model</title>
-    <!-- นำเข้าฟอนต์ Google Fonts เพื่อความสวยงาม -->
+    <title>Teachable Machine - Every 3 Seconds</title>
+    <!-- นำเข้าฟอนต์ Google Fonts เพื่อความโมเดิร์นและสวยงาม -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
@@ -16,7 +16,7 @@
         
         body {
             font-family: 'Sarabun', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -25,11 +25,11 @@
             padding: 20px;
         }
 
-        .main-card {
+        .container {
             background-color: #ffffff;
             padding: 40px 30px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
             max-width: 450px;
             width: 100%;
@@ -42,14 +42,14 @@
             margin-bottom: 8px;
         }
 
-        .info-text {
+        .subtitle {
             color: #7f8c8d;
             font-size: 14px;
             margin-bottom: 25px;
         }
 
-        .btn-primary {
-            background-color: #3498db;
+        .btn-start {
+            background-color: #4a69bd;
             color: #ffffff;
             border: none;
             padding: 14px 35px;
@@ -58,17 +58,13 @@
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 5px 15px rgba(74, 105, 189, 0.3);
         }
 
-        .btn-primary:hover {
-            background-color: #2980b9;
+        .btn-start:hover {
+            background-color: #1e3799;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
+            box-shadow: 0 8px 20px rgba(74, 105, 189, 0.4);
         }
 
         #webcam-container {
@@ -78,8 +74,8 @@
         }
 
         #webcam-container canvas {
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
             border: 4px solid #ffffff;
             background-color: #f8f9fa;
         }
@@ -91,11 +87,11 @@
             text-align: left;
         }
 
-        .result-row {
+        .label-box {
             background-color: #f8f9fa;
             padding: 12px 20px;
             border-radius: 10px;
-            border-left: 5px solid #2ecc71;
+            border-left: 5px solid #38ada9;
             font-weight: 600;
             display: flex;
             justify-content: space-between;
@@ -103,12 +99,12 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        .class-name {
-            color: #34495e;
+        .class-text {
+            color: #2c3e50;
         }
 
-        .class-probability {
-            color: #27ae60;
+        .probability-text {
+            color: #38ada9;
             background-color: #e8f8f5;
             padding: 3px 12px;
             border-radius: 20px;
@@ -118,11 +114,11 @@
 </head>
 <body>
 
-<div class="main-card">
+<div class="container">
     <h2>Teachable Machine Image Model</h2>[cite: 3]
-    <p class="info-text">ภาพแสดงผลสดลื่นไหลปกติ ระบบจะทำการวิเคราะห์วัตถุในทุก ๆ 3 วินาที</p>
+    <p class="subtitle">แสดงภาพสดปกติ และระบบจะวิเคราะห์รูปภาพเพื่อทำนายผลทุก ๆ 3 วินาที</p>
     
-    <button type="button" class="btn-primary" onclick="init()">เริ่มเปิดกล้อง (Start)</button>[cite: 3]
+    <button type="button" class="btn-start" onclick="init()">เริ่มทำงาน (Start)</button>[cite: 3]
     
     <div id="webcam-container"></div>[cite: 3]
     <div id="label-container"></div>[cite: 3]
@@ -133,72 +129,72 @@
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>[cite: 3]
 
 <script type="text/javascript">
-    // ลิงก์โมเดลของคุณ
+    // ลิงก์โมเดลของคุณจากระบบ Teachable Machine
     const URL = "https://teachablemachine.withgoogle.com/models/jkT2DnYZd/";[cite: 3]
 
     let model, webcam, labelContainer, maxPredictions;
-    let analysisInterval;
+    let predictInterval;
 
-    // ฟังก์ชันเริ่มต้นโหลดโมเดลและเปิดกล้อง
+    // ฟังก์ชันเปิดใช้งานโมเดลและเซ็ตระบบกล้อง
     async function init() {
-        // ซ่อนปุ่มเริ่มทำงานทันทีหลังจากกด
-        document.querySelector('.btn-primary').style.display = 'none';
+        // ซ่อนปุ่มกดเพื่อป้องกันการกดเล่นซ้ำซ้อน
+        document.querySelector('.btn-start').style.display = 'none';
 
         const modelURL = URL + "model.json";[cite: 3]
         const metadataURL = URL + "metadata.json";[cite: 3]
 
-        // โหลดโมเดล AI[cite: 3]
+        // โหลดตัวโมเดล AI ออกมาใช้งาน[cite: 3]
         model = await tmImage.load(modelURL, metadataURL);[cite: 3]
         maxPredictions = model.getTotalClasses();[cite: 3]
 
-        // ตั้งค่ากล้องเว็บแคม (ปรับขนาดเป็น 250x250 พิกเซลให้ดูชัดเจนสวยงาม)
+        // ตั้งค่าตัวกล้องแคม (ขนาด 250x250 พิกเซล พร้อมเปิดการกลับซ้ายขวาแบบกระจกเงา)
         const flip = true; 
         webcam = new tmImage.Webcam(250, 250, flip);[cite: 3]
-        await webcam.setup(); // ขอสิทธิ์เข้าถึงกล้อง[cite: 3]
+        await webcam.setup(); // ร้องขอการเปิดใช้สิทธิ์ตัวกล้อง[cite: 3]
         await webcam.play();[cite: 3]
         
-        // รันแอนิเมชันให้กล้องแสดงผลสดแบบเรียลไทม์ (ภาพไม่กระตุก)
+        // รันแอนิเมชันลูปตัวภาพของกล้องสดให้ขยับแบบเรียลไทม์ (ภาพไม่กระตุก)
         window.requestAnimationFrame(loop);[cite: 3]
 
-        // นำกล้องแสดงผลลงในแท็ก HTML[cite: 3]
+        // ใส่ Element หน้าจอกล้องลงไปใน HTML[cite: 3]
         document.getElementById("webcam-container").appendChild(webcam.canvas);[cite: 3]
         labelContainer = document.getElementById("label-container");[cite: 3]
         
-        // สร้างกล่องแสดงผลลัพธ์ตามจำนวนคลาสที่มี
+        // สร้างกรอบข้อความเพื่อรอแสดงผลเปอร์เซ็นต์คำทำนาย
         for (let i = 0; i < maxPredictions; i++) {[cite: 3]
             let div = document.createElement("div");
-            div.className = "result-row";
+            div.className = "label-box";
             labelContainer.appendChild(div);[cite: 3]
         }
 
-        // สั่งทำนายผลครั้งแรกในทันที
+        // ให้วิเคราะห์ข้อมูลคำทำนายทันทีในครั้งแรกที่เปิด
         await predict();
 
-        // [ตั้งเวลา 3 วินาที] เรียกฟังก์ชันทำนายผล (predict) ทุกๆ 3000 มิลลิวินาที
-        analysisInterval = setInterval(predict, 3000);
+        // [คำสั่งทำทุก 3 วินาที] ตั้งเวลาให้ระบบทำการดึงภาพทำนายผล (predict) ทุกๆ 3000 มิลลิวินาที
+        predictInterval = setInterval(predict, 3000);
     }
 
-    // ฟังก์ชันลูปสำหรับอัปเดตภาพหน้าจอกล้องให้ขยับอยู่ตลอดเวลา
+    // ฟังก์ชันลูปดึงภาพสดเข้ามาที่ตัวแคนวาสเพื่อให้ภาพกล้องเคลื่อนไหวได้อย่างราบรื่น
     async function loop() {
         webcam.update();[cite: 3]
         window.requestAnimationFrame(loop);[cite: 3]
     }
 
-    // ฟังก์ชันส่งภาพไปประมวลผลผ่านโมเดลเพื่อแปลงเป็นผลลัพธ์
+    // ฟังก์ชันส่งเฟรมรูปภาพไปประมวลผลคำทำนายและแสดงผลลัพธ์ลง UI
     async function predict() {
         if (!model || !webcam) return;
 
-        // ประมวลผลภาพจากกล้องปัจจุบัน[cite: 3]
+        // ดึงภาพจากเฟรมกล้อง ณ เสี้ยววินาทีนั้นไปตรวจจับผล[cite: 3]
         const prediction = await model.predict(webcam.canvas);[cite: 3]
         for (let i = 0; i < maxPredictions; i++) {[cite: 3]
             const className = prediction[i].className;
-            // แปลงค่าทศนิยมของผลลัพธ์ให้เป็น % เพื่อให้อ่านง่าย เช่น 0.99 -> 99%
-            const probabilityPercent = (prediction[i].probability * 100).toFixed(0) + "%";
+            // แปลงค่าจุดทศนิยมของโอกาสความน่าจะเป็นให้เป็นค่าเปอร์เซ็นต์ที่คนดูเข้าใจได้ง่าย (เช่น 0.94 -> 94%)
+            const percent = (prediction[i].probability * 100).toFixed(0) + "%";
             
-            // นำผลลัพธ์ที่ได้ไปจัดแสดงใน UI แถวที่เตรียมไว้
+            // นำผลที่แปลงแล้วอัปเดตลงไปในกล่องแสดงคำทำนายที่สร้างเตรียมไว้
             labelContainer.childNodes[i].innerHTML = `
-                <span class="class-name">${className}</span>
-                <span class="class-probability">${probabilityPercent}</span>
+                <span class="class-text">${className}</span>
+                <span class="probability-text">${percent}</span>
             `;
         }
     }
